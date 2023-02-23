@@ -102,6 +102,7 @@ if __name__ == '__main__':
     peewee_logger.addHandler(database_logger.handlers[0])
     peewee_logger.setLevel(database_logger.level)
 
+    # 启动 grpc server，用于 Party 方之间内部调用
     thread_pool_executor = ThreadPoolExecutor(max_workers=GRPC_SERVER_MAX_WORKERS)
     stat_logger.info(f"start grpc server thread pool by {thread_pool_executor._max_workers} max workers")
     server = grpc.server(thread_pool=thread_pool_executor, options=GRPC_OPTIONS)
@@ -112,7 +113,7 @@ if __name__ == '__main__':
     print("FATE Flow grpc server start successfully")
     stat_logger.info("FATE Flow grpc server start successfully")
 
-    # start http server
+    # 启动 http server，用于提供服务
     try:
         print("FATE Flow http server start...")
         stat_logger.info("FATE Flow http server start...")

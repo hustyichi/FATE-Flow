@@ -67,6 +67,7 @@ def register_page(page_path):
     return url_prefix
 
 
+# 注册 HTTP 路由，将 Fate-Flow/python/fate_flow/apps 以及 Fate-Flow/python/fate_flow/scheduling_apps 下所有 python 文件
 client_urls_prefix = [
     register_page(path)
     for path in search_pages_path(Path(__file__).parent)
