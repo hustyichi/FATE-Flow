@@ -56,6 +56,7 @@ def register_page(page_path):
     spec = spec_from_file_location(module_name, page_path)
     page = module_from_spec(spec)
     page.app = app
+    # 为页面增加 manager Blueprint，动态注册路由机制，后续在页面中直接使用 @manager.route() 进行注册
     page.manager = Blueprint(page_name, module_name)
     sys.modules[module_name] = page
     spec.loader.exec_module(page)
