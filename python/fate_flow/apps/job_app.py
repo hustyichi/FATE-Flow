@@ -38,6 +38,7 @@ from fate_flow.utils.log_utils import schedule_logger
 
 @manager.route('/submit', methods=['POST'])
 def submit_job():
+    # 任务提交接口，任务都是通过这个接口提交开始执行的
     submit_result = DAGScheduler.submit(JobConfigurationBase(**request.json))
     return get_json_result(retcode=submit_result["code"], retmsg=submit_result["message"],
                            job_id=submit_result["job_id"],

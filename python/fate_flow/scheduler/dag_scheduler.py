@@ -41,10 +41,13 @@ from fate_flow.utils.log_utils import exception_to_trace_string, schedule_logger
 
 
 class DAGScheduler(Cron):
+    # 任务提交处理方法，任务成功提交后状态为 WAITING
     @classmethod
     def submit(cls, submit_job_conf: JobConfigurationBase, job_id: str = None):
+        # 没有 id 时默认生成唯一 id
         if not job_id:
             job_id = job_utils.generate_job_id()
+
         submit_result = {
             "job_id": job_id
         }
@@ -101,6 +104,7 @@ class DAGScheduler(Cron):
             job.f_role = job_initiator["role"]
             job.f_party_id = job_initiator["party_id"]
 
+            # 将配置文件保持至文件中
             path_dict = job_utils.save_job_conf(job_id=job_id,
                                                 role=job.f_initiator_role,
                                                 party_id=job.f_initiator_party_id,
@@ -134,6 +138,7 @@ class DAGScheduler(Cron):
                 inheritance_tasks = JobSaver.query_task(job_id=job.f_inheritance_info.get("job_id"), role=job_initiator["role"], party_id=job_initiator["party_id"], only_latest=True)
                 job_utils.check_job_inheritance_parameters(job, inheritance_jobs, inheritance_tasks)
 
+            # 通知各个参与方 (party) 去创建对应的 job
             status_code, response = FederatedScheduler.create_job(job=job)
             if status_code != FederatedSchedulingStatusCode.SUCCESS:
                 job.f_status = JobStatus.FAILED
@@ -166,6 +171,7 @@ class DAGScheduler(Cron):
                                                            runtime_conf=runtime_conf,
                                                            is_scheduler=True)
                 job.f_status = JobStatus.WAITING
+                # 将 job 状态同步给各个参与方
                 status_code, response = FederatedScheduler.sync_job_status(job=job)
                 if status_code != FederatedSchedulingStatusCode.SUCCESS:
                     raise Exception(f"set job to waiting status failed: {response}")
@@ -209,6 +215,7 @@ class DAGScheduler(Cron):
         else:
             return RetCode.OPERATING_ERROR, response
 
+    # 默认调用此方法进行 job 的处理
     def run_do(self):
         schedule_logger().info("start schedule waiting jobs")
         jobs = JobSaver.query_job(is_initiator=True, status=JobStatus.WAITING, order_by="create_time", reverse=False)

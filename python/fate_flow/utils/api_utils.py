@@ -108,6 +108,7 @@ def error_response(response_code, retmsg=None):
     }), status=response_code, mimetype='application/json')
 
 
+# party 方之间调用请求封装，支持 HTTP 和 GRPC 请求
 def federated_api(job_id, method, endpoint, src_party_id, dest_party_id, src_role, json_body, federated_mode):
     src_party_id = str(src_party_id or '')
     dest_party_id = str(dest_party_id or '')

@@ -44,6 +44,7 @@ PIPELINE_COMPONENT_MODULE_NAME = 'Pipeline'
 PIPELINE_MODEL_NAME = 'Pipeline'
 
 
+# 唯一 id 生成器，基于时间 + 自增实现，支持 1s 生成最多 10^12 个不同的 id
 class JobIdGenerator(object):
     _lock = threading.RLock()
 

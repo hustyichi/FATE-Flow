@@ -150,6 +150,7 @@ class FederatedScheduler(SchedulerBase):
             schedule_logger(job.f_job_id).info(f"clean job failed:\n{response}")
         return status_code, response
 
+    # job 基础执行方法，主要通过请求调用通知各个参与方执行对应的命令
     @classmethod
     def job_command(cls, job, command, command_body=None, dest_only_initiator=False, specific_dest=None, parallel=False):
         federated_response = {}
@@ -268,6 +269,7 @@ class FederatedScheduler(SchedulerBase):
             schedule_logger(job.f_job_id).error(failed_log(msg, detail=response))
         return status_code, response
 
+    # 针对单个参与方的单个请求的封装
     @classmethod
     def federated_command(cls, job_id, src_role, src_party_id, dest_role, dest_party_id, endpoint, body, federated_mode, federated_response):
         st = base_utils.current_timestamp()
