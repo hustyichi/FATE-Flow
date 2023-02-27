@@ -218,7 +218,7 @@ class DAGScheduler(Cron):
     # 默认调用此方法进行 job 的处理
     def run_do(self):
         schedule_logger().info("start schedule waiting jobs")
-        # 默认处理 WAITING 状态的第一个创建的 job 进行处理
+        # 默认处理 WAITING 状态的第一个创建的 job 进行处理，会分配必要的资源，处理结束状态变为 RUNNING
         jobs = JobSaver.query_job(is_initiator=True, status=JobStatus.WAITING, order_by="create_time", reverse=False)
         schedule_logger().info(f"have {len(jobs)} waiting jobs")
         if len(jobs):
@@ -232,6 +232,7 @@ class DAGScheduler(Cron):
                 schedule_logger(job.f_job_id).error("schedule waiting job failed")
         schedule_logger().info("schedule waiting jobs finished")
 
+        # 默认处理 RUNNING 状态的第一个创建的 job 进行处理
         schedule_logger().info("start schedule running jobs")
         jobs = JobSaver.query_job(is_initiator=True, status=JobStatus.RUNNING, order_by="create_time", reverse=False)
         schedule_logger().info(f"have {len(jobs)} running jobs")
@@ -416,7 +417,10 @@ class DAGScheduler(Cron):
         dsl_parser = schedule_utils.get_job_dsl_parser(dsl=job.f_dsl,
                                                        runtime_conf=job.f_runtime_conf_on_party,
                                                        train_runtime_conf=job.f_train_runtime_conf)
+        # 调度 job 进行执行
         task_scheduling_status_code, auto_rerun_tasks, tasks = TaskScheduler.schedule(job=job, dsl_parser=dsl_parser, canceled=job.f_cancel_signal)
+
+        # 更新 job 执行的进度以及状态
         tasks_status = dict([(task.f_component_name, task.f_status) for task in tasks])
         new_job_status = cls.calculate_job_status(task_scheduling_status_code=task_scheduling_status_code, tasks_status=tasks_status.values())
         if new_job_status == JobStatus.WAITING and job.f_cancel_signal:
@@ -436,8 +440,11 @@ class DAGScheduler(Cron):
                     FederatedScheduler.save_pipelined_model(job=job)
                 FederatedScheduler.sync_job_status(job=job)
                 cls.update_job_on_initiator(initiator_job=job, update_fields=["status"])
+
+        # 处理结束，执行必要资源回收
         if EndStatus.contains(job.f_status):
             cls.finish(job=job, end_status=job.f_status)
+
         if auto_rerun_tasks:
             schedule_logger(job.f_job_id).info("job have auto rerun tasks")
             cls.set_job_rerun(job_id=job.f_job_id, initiator_role=job.f_initiator_role, initiator_party_id=job.f_initiator_party_id, tasks=auto_rerun_tasks, auto=True)
