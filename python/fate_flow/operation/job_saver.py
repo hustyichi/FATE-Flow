@@ -29,10 +29,12 @@ import peewee
 class JobSaver(object):
     STATUS_FIELDS = ["status", "party_status"]
 
+    # 将 job 存入 db
     @classmethod
     def create_job(cls, job_info) -> Job:
         return cls.create_job_family_entity(Job, job_info)
 
+    # 将 task 存入 db
     @classmethod
     def create_task(cls, task_info) -> Task:
         return cls.create_job_family_entity(Task, task_info)

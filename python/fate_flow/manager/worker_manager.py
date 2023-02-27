@@ -32,6 +32,7 @@ from fate_flow.utils.log_utils import failed_log, ready_log, schedule_logger, st
 
 
 class WorkerManager:
+    # 执行辅助性的 task 任务
     @classmethod
     def start_general_worker(cls, worker_name: WorkerName, job_id="", role="", party_id=0, provider: ComponentProvider = None,
                              initialized_config: dict = None, run_in_subprocess=True, **kwargs):
@@ -146,7 +147,7 @@ class WorkerManager:
             else:
                 raise Exception(message)
 
-    # 准备执行所需的参数，调用 process_utils.run_subprocess 创建新进程执行命令
+    # 执行主要的 task 任务，调用 process_utils.run_subprocess 创建新进程执行命令
     @classmethod
     def start_task_worker(cls, worker_name, task: Task, task_parameters: RunParameters = None,
                           executable: list = None, extra_env: dict = None, **kwargs):

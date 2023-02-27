@@ -159,6 +159,7 @@ class DAGScheduler(Cron):
                                 continue
                             if not need_run_components[role][party_id]:
                                 continue
+                            # 初始化 job 对应的 task，主要是在 db 中创建 job 对应的 task 记录
                             JobController.initialize_tasks(job_id=job_id,
                                                            role=role,
                                                            party_id=party_id,

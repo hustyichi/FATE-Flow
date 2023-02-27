@@ -270,6 +270,7 @@ class JobController(object):
         initialized_result, provider_group = cls.initialize_tasks(components=[task_info["component_name"]], **task_info)
         return initialized_result
 
+    # 初始化 job 对应的 task，一般是 db 中创建对应的 task 记录
     @classmethod
     def initialize_tasks(cls, job_id, role, party_id, run_on_this_party, initiator_role, initiator_party_id,
                          job_parameters: RunParameters = None, dsl_parser=None, components: list = None,

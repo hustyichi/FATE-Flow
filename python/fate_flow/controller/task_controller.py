@@ -35,6 +35,7 @@ from fate_flow.entity.types import TaskCleanResourceType
 class TaskController(object):
     INITIATOR_COLLECT_FIELDS = ["status", "party_status", "start_time", "update_time", "end_time", "elapsed"]
 
+    # 在 db 中创建对应的 task
     @classmethod
     def create_task(cls, role, party_id, run_on_this_party, task_info):
         task_info["role"] = role
