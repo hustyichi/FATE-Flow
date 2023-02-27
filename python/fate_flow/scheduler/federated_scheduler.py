@@ -165,19 +165,26 @@ class FederatedScheduler(SchedulerBase):
             dest_partis = job.f_roles.items()
             api_type = "party"
         threads = []
+
+        # 遍历 job 对应的参与方执行对应的请求
         for dest_role, dest_party_ids in dest_partis:
             federated_response[dest_role] = {}
             for dest_party_id in dest_party_ids:
                 endpoint = f"/{api_type}/{job.f_job_id}/{dest_role}/{dest_party_id}/{command}"
                 args = (job.f_job_id, job.f_role, job.f_party_id, dest_role, dest_party_id, endpoint, command_body, job_parameters["federated_mode"], federated_response)
+
+                # 并行执行下，就是创建多个线程执行
                 if parallel:
                     t = threading.Thread(target=cls.federated_command, args=args)
                     threads.append(t)
                     t.start()
                 else:
                     cls.federated_command(*args)
+
+        # 等待多线程执行的任务执行结束再返回
         for thread in threads:
             thread.join()
+
         return cls.return_federated_response(federated_response=federated_response)
 
     @classmethod

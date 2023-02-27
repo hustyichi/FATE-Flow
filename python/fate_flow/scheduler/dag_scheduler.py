@@ -397,7 +397,7 @@ class DAGScheduler(Cron):
             schedule_utils.rerun_signal(job_id=job.f_job_id, set_or_reset=False)
             cls.schedule_running_job(job)
 
-    # 启动 job 执行
+    # 启动 job 执行，通知参与方创建对应的 job，并更新状态为 RUNNING
     @classmethod
     def start_job(cls, job_id, initiator_role, initiator_party_id):
         schedule_logger(job_id).info(f"try to start job on initiator {initiator_role} {initiator_party_id}")

@@ -374,6 +374,7 @@ class JobController(object):
         job_info["party_id"] = party_id
         JobSaver.update_job(job_info)
 
+    # 更新 job 状态为 RUNNING，并将 job 相关的信息写入 DB
     @classmethod
     def start_job(cls, job_id, role, party_id, extra_info=None):
         schedule_logger(job_id).info(
