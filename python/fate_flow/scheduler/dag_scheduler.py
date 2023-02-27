@@ -218,6 +218,7 @@ class DAGScheduler(Cron):
     # 默认调用此方法进行 job 的处理
     def run_do(self):
         schedule_logger().info("start schedule waiting jobs")
+        # 默认处理 WAITING 状态的第一个创建的 job 进行处理
         jobs = JobSaver.query_job(is_initiator=True, status=JobStatus.WAITING, order_by="create_time", reverse=False)
         schedule_logger().info(f"have {len(jobs)} waiting jobs")
         if len(jobs):
@@ -298,11 +299,15 @@ class DAGScheduler(Cron):
         if job.f_inheritance_status != JobInheritanceStatus.PASS:
             cls.check_component(job)
         schedule_logger(job_id).info("job dependence check")
+
+        # 检查资源依赖关系
         dependence_status_code, federated_dependence_response = FederatedScheduler.dependence_for_job(job=job)
         schedule_logger(job_id).info(f"dependence check: {dependence_status_code}, {federated_dependence_response}")
         if dependence_status_code == FederatedSchedulingStatusCode.SUCCESS:
+            # 申请相关资源
             apply_status_code, federated_response = FederatedScheduler.resource_for_job(job=job, operation_type=ResourceOperation.APPLY)
             if apply_status_code == FederatedSchedulingStatusCode.SUCCESS:
+                # 启动 job 执行，状态更新至 RUNNING
                 cls.start_job(job_id=job_id, initiator_role=initiator_role, initiator_party_id=initiator_party_id)
             else:
                 # rollback resource
@@ -391,6 +396,7 @@ class DAGScheduler(Cron):
             schedule_utils.rerun_signal(job_id=job.f_job_id, set_or_reset=False)
             cls.schedule_running_job(job)
 
+    # 启动 job 执行
     @classmethod
     def start_job(cls, job_id, initiator_role, initiator_party_id):
         schedule_logger(job_id).info(f"try to start job on initiator {initiator_role} {initiator_party_id}")
