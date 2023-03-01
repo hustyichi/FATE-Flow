@@ -50,6 +50,7 @@ class TaskController(object):
 
         task = JobSaver.create_task(task_info=task_info)
 
+    # 根据任务选择对应的 Engine，在特定的环境下执行任务
     @classmethod
     def start_task(cls, job_id, component_name, task_id, task_version, role, party_id, **kwargs):
         """

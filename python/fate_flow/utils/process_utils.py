@@ -24,6 +24,7 @@ from fate_flow.settings import SUBPROCESS_STD_LOG_NAME
 from fate_flow.settings import stat_logger
 
 
+# 创建新进程执行特定命令
 def run_subprocess(job_id, config_dir, process_cmd, added_env: dict = None, log_dir=None, cwd_dir=None, process_name="", process_id=""):
     logger = schedule_logger(job_id) if job_id else stat_logger
     process_cmd = [str(cmd) for cmd in process_cmd]

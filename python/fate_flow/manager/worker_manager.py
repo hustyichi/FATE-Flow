@@ -146,6 +146,7 @@ class WorkerManager:
             else:
                 raise Exception(message)
 
+    # 准备执行所需的参数，调用 process_utils.run_subprocess 创建新进程执行命令
     @classmethod
     def start_task_worker(cls, worker_name, task: Task, task_parameters: RunParameters = None,
                           executable: list = None, extra_env: dict = None, **kwargs):
