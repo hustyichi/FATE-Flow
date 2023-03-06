@@ -429,7 +429,7 @@ class DAGScheduler(Cron):
         if new_job_status == JobStatus.WAITING and job.f_cancel_signal:
             new_job_status = JobStatus.CANCELED
 
-        # 根据已完成 job 的数量与总 task 的数量确定完成的进度
+        # 根据 job 已完成 task 的数量与总 task 的数量确定完成的进度
         total, finished_count = cls.calculate_job_progress(tasks_status=tasks_status)
         new_progress = float(finished_count) / total * 100
         schedule_logger(job.f_job_id).info(f"job status is {new_job_status}, calculate by task status list: {tasks_status}")
