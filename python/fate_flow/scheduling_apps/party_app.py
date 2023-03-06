@@ -225,6 +225,7 @@ def task_status(job_id, component_name, task_id, task_version, role, party_id, s
 def stop_task(job_id, component_name, task_id, task_version, role, party_id, stop_status):
     tasks = JobSaver.query_task(job_id=job_id, task_id=task_id, task_version=task_version, role=role, party_id=int(party_id))
     kill_status = True
+    # 停止 job 相关的所有 task，如果某一个 task 停止失败，则后续 task 不再继续继续执行停止，预计需要配合调用方执行重试
     for task in tasks:
         kill_status = kill_status & TaskController.stop_task(task=task, stop_status=stop_status, is_asynchronous=request.json.get("is_asynchronous"))
     return get_json_result(retcode=RetCode.SUCCESS if kill_status else RetCode.EXCEPTION_ERROR,

@@ -191,6 +191,7 @@ class TaskController(object):
         cls.update_task(task_info=task_info)
         return kill_status
 
+    # 停止 task，根据运行的 engine 执行特定的停止策略，并停掉 task 相关的所有 worker
     @classmethod
     def kill_task(cls, task: Task):
         kill_status = False

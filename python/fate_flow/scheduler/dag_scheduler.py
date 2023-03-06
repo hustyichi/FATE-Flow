@@ -424,17 +424,24 @@ class DAGScheduler(Cron):
         # 更新 job 执行的进度以及状态
         tasks_status = dict([(task.f_component_name, task.f_status) for task in tasks])
         new_job_status = cls.calculate_job_status(task_scheduling_status_code=task_scheduling_status_code, tasks_status=tasks_status.values())
+
+        # 取消状态更新
         if new_job_status == JobStatus.WAITING and job.f_cancel_signal:
             new_job_status = JobStatus.CANCELED
+
+        # 根据已完成 job 的数量与总 task 的数量确定完成的进度
         total, finished_count = cls.calculate_job_progress(tasks_status=tasks_status)
         new_progress = float(finished_count) / total * 100
         schedule_logger(job.f_job_id).info(f"job status is {new_job_status}, calculate by task status list: {tasks_status}")
         if new_job_status != job.f_status or new_progress != job.f_progress:
             # Make sure to update separately, because these two fields update with anti-weight logic
+            # 通知参与方更新 job 执行的进度信息
             if int(new_progress) - job.f_progress > 0:
                 job.f_progress = new_progress
                 FederatedScheduler.sync_job(job=job, update_fields=["progress"])
                 cls.update_job_on_initiator(initiator_job=job, update_fields=["progress"])
+
+            # 有状态变化时通知相关方更新 job 状态信息
             if new_job_status != job.f_status:
                 job.f_status = new_job_status
                 if EndStatus.contains(job.f_status):

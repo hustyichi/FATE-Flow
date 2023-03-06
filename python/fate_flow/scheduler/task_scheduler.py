@@ -31,6 +31,7 @@ from fate_flow.entity.types import TaskCleanResourceType
 
 class TaskScheduler(object):
     @classmethod
+    # 实际的 job 调度执行
     def schedule(cls, job, dsl_parser, canceled=False):
         schedule_logger(job.f_job_id).info("scheduling job tasks")
         initiator_tasks_group = JobSaver.get_tasks_asc(job_id=job.f_job_id, role=job.f_role, party_id=job.f_party_id)
@@ -48,13 +49,18 @@ class TaskScheduler(object):
             new_task_status = cls.get_federated_task_status(job_id=initiator_task.f_job_id, task_id=initiator_task.f_task_id, task_version=initiator_task.f_task_version)
             task_interrupt = False
             task_status_have_update = False
+
+            # 存在状态更新，通知相关方更新状态
             if new_task_status != initiator_task.f_status:
                 task_status_have_update = True
                 initiator_task.f_status = new_task_status
                 FederatedScheduler.sync_task_status(job=job, task=initiator_task)
+
+            # 新状态为中断状态，更新 job 与 task 中断标记
             if InterruptStatus.contains(new_task_status):
                 task_interrupt = True
                 job_interrupt = True
+
             if initiator_task.f_status == TaskStatus.WAITING:
                 waiting_tasks.append(initiator_task)
             elif task_status_have_update and EndStatus.contains(initiator_task.f_status) or task_interrupt:
@@ -71,7 +77,9 @@ class TaskScheduler(object):
         scheduling_status_code = SchedulingStatusCode.NO_NEXT
         schedule_logger(job.f_job_id).info(f"canceled status {canceled}, job interrupt status {job_interrupt}")
         if not canceled and not job_interrupt:
+            # 执行所有就绪的 tasks
             for waiting_task in waiting_tasks:
+                # task 相关的上游 task 没有执行完成，task 无法执行
                 for component in dsl_parser.get_upstream_dependent_components(component_name=waiting_task.f_component_name):
                     dependent_task = initiator_tasks_group[
                         JobSaver.task_key(task_id=job_utils.generate_task_id(job_id=job.f_job_id, component_name=component.get_name()),
@@ -85,6 +93,7 @@ class TaskScheduler(object):
                 else:
                     # all upstream dependent tasks have been successful, can start this task
                     scheduling_status_code = SchedulingStatusCode.HAVE_NEXT
+                    # 执行就绪的 task
                     status_code = cls.start_task(job=job, task=waiting_task)
                     if status_code == SchedulingStatusCode.NO_RESOURCE:
                         # wait for the next round of scheduling
@@ -100,12 +109,15 @@ class TaskScheduler(object):
         schedule_logger(job.f_job_id).info("finish scheduling job tasks")
         return scheduling_status_code, auto_rerun_tasks, initiator_tasks_group.values()
 
+    # 启动 task
     @classmethod
     def start_task(cls, job, task):
         schedule_logger(task.f_job_id).info("try to start task {} {} on {} {}".format(task.f_task_id, task.f_task_version, task.f_role, task.f_party_id))
+        # 申请 task 相关的资源
         apply_status = ResourceManager.apply_for_task_resource(task_info=task.to_human_model_dict(only_primary_with=["status"]))
         if not apply_status:
             return SchedulingStatusCode.NO_RESOURCE
+
         task.f_status = TaskStatus.RUNNING
         update_status = JobSaver.update_task_status(task_info=task.to_human_model_dict(only_primary_with=["status"]))
         if not update_status:
@@ -117,6 +129,8 @@ class TaskScheduler(object):
             return SchedulingStatusCode.PASS
         schedule_logger(task.f_job_id).info("start task {} {} on {} {}".format(task.f_task_id, task.f_task_version, task.f_role, task.f_party_id))
         FederatedScheduler.sync_task_status(job=job, task=task)
+
+        # 实际调用参与方执行 task
         status_code, response = FederatedScheduler.start_task(job=job, task=task)
         if status_code == FederatedSchedulingStatusCode.SUCCESS:
             return SchedulingStatusCode.SUCCESS

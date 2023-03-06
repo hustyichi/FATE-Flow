@@ -263,6 +263,7 @@ class JobSaver(object):
             return False
 
     @classmethod
+    # 获取最新的 tasks，过滤掉老 task
     def get_latest_tasks(cls, tasks):
         tasks_group = {}
         for task in tasks:

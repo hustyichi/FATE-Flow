@@ -271,6 +271,7 @@ class WorkerManager:
         if rows != 1:
             raise Exception("save worker info failed")
 
+    # 关闭 task 相关的所有 workers
     @classmethod
     @DB.connection_context()
     def kill_task_all_workers(cls, task: Task):
@@ -289,6 +290,7 @@ class WorkerManager:
                     failed_log(f"kill {worker_info.f_worker_name}({worker_info.f_run_pid})", task=task), exc_info=True)
         schedule_logger(task.f_job_id).info(successful_log("kill all workers", task=task))
 
+    # 关闭特定的 worker
     @classmethod
     def kill_worker(cls, worker_info: WorkerInfo):
         process_utils.kill_process(pid=worker_info.f_run_pid, expected_cmdline=worker_info.f_cmd)
