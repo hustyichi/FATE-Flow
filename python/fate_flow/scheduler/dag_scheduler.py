@@ -233,7 +233,7 @@ class DAGScheduler(Cron):
                 schedule_logger(job.f_job_id).error("schedule waiting job failed")
         schedule_logger().info("schedule waiting jobs finished")
 
-        # 默认处理 RUNNING 状态的第一个创建的 job 进行处理
+        # 默认处理所有 RUNNING 状态的 job
         schedule_logger().info("start schedule running jobs")
         jobs = JobSaver.query_job(is_initiator=True, status=JobStatus.RUNNING, order_by="create_time", reverse=False)
         schedule_logger().info(f"have {len(jobs)} running jobs")
@@ -398,7 +398,7 @@ class DAGScheduler(Cron):
             schedule_utils.rerun_signal(job_id=job.f_job_id, set_or_reset=False)
             cls.schedule_running_job(job)
 
-    # 启动 job 执行，通知参与方创建对应的 job，并更新状态为 RUNNING
+    # 启动 job 执行，通知参与方启动 job，将状态更新为 RUNNING
     @classmethod
     def start_job(cls, job_id, initiator_role, initiator_party_id):
         schedule_logger(job_id).info(f"try to start job on initiator {initiator_role} {initiator_party_id}")

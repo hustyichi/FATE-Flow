@@ -46,6 +46,7 @@ from fate_flow.utils.model_utils import gather_model_info_data, save_model_info
 
 class JobController(object):
     @classmethod
+    # 参与方创建对应的 job，会生成 job 以及对应的 tasks
     def create_job(cls, job_id, role, party_id, job_info):
         # parse job configuration
         dsl = job_info['dsl']
@@ -270,7 +271,7 @@ class JobController(object):
         initialized_result, provider_group = cls.initialize_tasks(components=[task_info["component_name"]], **task_info)
         return initialized_result
 
-    # 初始化 job 对应的 task，一般是 db 中创建对应的 task 记录
+    # 初始化 job 对应的 task，在 DB 中会生成 job 对应的 Task 记录
     @classmethod
     def initialize_tasks(cls, job_id, role, party_id, run_on_this_party, initiator_role, initiator_party_id,
                          job_parameters: RunParameters = None, dsl_parser=None, components: list = None,
@@ -405,6 +406,7 @@ class JobController(object):
         return JobSaver.update_job(job_info=job_info)
 
     @classmethod
+    # 更新 job 对应的状态
     def update_job_status(cls, job_info):
         update_status = JobSaver.update_job_status(job_info=job_info)
         if update_status and EndStatus.contains(job_info.get("status")):

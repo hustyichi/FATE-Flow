@@ -102,6 +102,7 @@ class FederatedScheduler(SchedulerBase):
         return status_code, response
 
     @classmethod
+    # 将 job 的状态同步给所有参与方
     def sync_job_status(cls, job):
         schedule_logger(job.f_job_id).info(f"job is {job.f_status}, sync to all party")
         status_code, response = cls.job_command(job=job, command=f"status/{job.f_status}", command_body=job.to_human_model_dict())

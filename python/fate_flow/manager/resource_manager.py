@@ -94,6 +94,7 @@ class ResourceManager(object):
         return True, cores, max_cores_per_job
 
     @classmethod
+    # 申请 job 所需的资源
     def apply_for_job_resource(cls, job_id, role, party_id):
         return cls.resource_for_job(job_id=job_id, role=role, party_id=party_id, operation_type=ResourceOperation.APPLY)
 
@@ -133,9 +134,11 @@ class ResourceManager(object):
     @DB.connection_context()
     def resource_for_job(cls, job_id, role, party_id, operation_type: ResourceOperation):
         operate_status = False
+        # 获取 job 所需的计算资源与内存资源
         engine_name, cores, memory = cls.calculate_job_resource(job_id=job_id, role=role, party_id=party_id)
         try:
             with DB.atomic():
+                # 将所需的资源信息保持至 job 对应的 db 中
                 updates = {
                     Job.f_engine_type: EngineType.COMPUTING,
                     Job.f_engine_name: engine_name,
@@ -162,6 +165,7 @@ class ResourceManager(object):
                 if not record_status:
                     raise RuntimeError(f"record job {job_id} resource {operation_type} failed on {role} {party_id}")
 
+                # 通过 EngineRegistry 实际申请资源，利用数据库记录限制资源资源的使用
                 if cores or memory:
                     filters, updates = cls.update_resource_sql(resource_model=EngineRegistry,
                                                                cores=cores,

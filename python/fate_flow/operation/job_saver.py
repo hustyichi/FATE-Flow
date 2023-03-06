@@ -45,6 +45,7 @@ class JobSaver(object):
         Job.delete().where(Job.f_job_id == job_id)
 
     @classmethod
+    # 更新 job 状态，将相关数据更新至 db
     def update_job_status(cls, job_info):
         schedule_logger(job_info["job_id"]).info("try to update job status to {}".format(job_info.get("status")))
         update_status = cls.update_status(Job, job_info)
