@@ -241,6 +241,7 @@ class ResourceManager(object):
                 job_parameters.spark_run["num-executors"] = adaptation_parameters["task_nodes"]
                 job_parameters.spark_run["executor-cores"] = adaptation_parameters["task_cores_per_node"]
 
+    # 计算 job 所需 cpu 和内存资源的数量
     @classmethod
     def calculate_job_resource(cls, job_parameters: RunParameters = None, job_id=None, role=None, party_id=None):
         if not job_parameters:
@@ -319,6 +320,7 @@ class ResourceManager(object):
                                                        task_info["task_version"], operation_type))
         return operate_status
 
+    # 根据资源场景生成对应的 sql 所需的 filter 和 update，filter 用于避免超额分配，update 用于更新数据
     @classmethod
     def update_resource_sql(cls, resource_model: typing.Union[EngineRegistry, Job], cores, memory, operation_type: ResourceOperation):
         if operation_type is ResourceOperation.APPLY:
@@ -336,6 +338,7 @@ class ResourceManager(object):
             raise RuntimeError(f"can not support {operation_type} resource operation type")
         return filters, updates
 
+    # 获取剩余可用资源
     @classmethod
     @DB.connection_context()
     def get_remaining_resource(cls, resource_model: typing.Union[EngineRegistry, Job], filters):

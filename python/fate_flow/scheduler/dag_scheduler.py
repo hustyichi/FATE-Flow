@@ -302,7 +302,7 @@ class DAGScheduler(Cron):
             cls.check_component(job)
         schedule_logger(job_id).info("job dependence check")
 
-        # 检查资源依赖关系
+        # 检查作业依赖是否满足要求，执行前置的作业前置检查
         dependence_status_code, federated_dependence_response = FederatedScheduler.dependence_for_job(job=job)
         schedule_logger(job_id).info(f"dependence check: {dependence_status_code}, {federated_dependence_response}")
         if dependence_status_code == FederatedSchedulingStatusCode.SUCCESS:

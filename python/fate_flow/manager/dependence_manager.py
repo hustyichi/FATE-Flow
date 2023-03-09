@@ -19,6 +19,7 @@ from fate_flow.worker.job_inheritor import JobInherit
 
 
 class DependenceManager:
+    # 检查 job 依赖是否满足要求
     @classmethod
     def check_job_dependence(cls, job):
         if cls.check_job_inherit_dependence(job) and cls.check_spark_dependence(job):
