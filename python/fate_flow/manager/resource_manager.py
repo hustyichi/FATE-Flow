@@ -39,6 +39,7 @@ class ResourceManager(object):
             for engine_name, engine_config in engine_configs.items():
                 cls.register_engine(engine_type=engine_type, engine_name=engine_name, engine_entrance=engine_group_map[engine_type][engine_name], engine_config=engine_config)
 
+    # 注册新的资源
     @classmethod
     @DB.connection_context()
     def register_engine(cls, engine_type, engine_name, engine_entrance, engine_config):
@@ -98,11 +99,13 @@ class ResourceManager(object):
     def apply_for_job_resource(cls, job_id, role, party_id):
         return cls.resource_for_job(job_id=job_id, role=role, party_id=party_id, operation_type=ResourceOperation.APPLY)
 
+    # job 释放对应的资源
     @classmethod
     def return_job_resource(cls, job_id, role, party_id):
         return cls.resource_for_job(job_id=job_id, role=role, party_id=party_id,
                                     operation_type=ResourceOperation.RETURN)
 
+    # 获取 job 使用资源的情况统计
     @classmethod
     def query_resource(cls, resource_in_use=True, engine_name=None):
         if not engine_name:
@@ -115,6 +118,7 @@ class ResourceManager(object):
         computing_engine_resource = cls.get_engine_registration_info(engine_type=EngineType.COMPUTING, engine_name=engine_name)
         return used, computing_engine_resource.to_dict() if computing_engine_resource else {}
 
+    # job 释放对应的资源
     @classmethod
     def return_resource(cls, job_id):
         jobs = JobSaver.query_job(job_id=job_id)
