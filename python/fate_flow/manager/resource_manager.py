@@ -32,6 +32,7 @@ from fate_flow.db.job_default_config import JobDefaultConfig
 
 
 class ResourceManager(object):
+    # 初始化资源配置，在启动 fate-flow server 时初始化，后续也可以重新加载
     @classmethod
     def initialize(cls):
         engines_config, engine_group_map = engine_utils.get_engines_config_from_conf(group_map=True)
@@ -288,10 +289,12 @@ class ResourceManager(object):
                               task_parameters.adaptation_parameters["task_nodes"]
         return cores_per_task, memory_per_task
 
+    # task 申请资源，资源是从 Job 表中获取得到的
     @classmethod
     def apply_for_task_resource(cls, task_info):
         return ResourceManager.resource_for_task(task_info=task_info, operation_type=ResourceOperation.APPLY)
 
+    # task 释放资源，资源释放回 Job 表中
     @classmethod
     def return_task_resource(cls, task_info):
         return ResourceManager.resource_for_task(task_info=task_info, operation_type=ResourceOperation.RETURN)

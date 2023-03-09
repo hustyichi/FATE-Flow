@@ -414,6 +414,7 @@ class JobController(object):
                 job_id=job_info["job_id"], role=job_info["role"], party_id=job_info["party_id"])
         return update_status
 
+    # 根据 job_id 以及筛选条件停止对应的 job
     @classmethod
     def stop_jobs(cls, job_id, stop_status, role=None, party_id=None):
         if role and party_id:
@@ -430,12 +431,14 @@ class JobController(object):
             kill_details[job_id] = kill_job_details
         return kill_status, kill_details
 
+    # 停止 job
     @classmethod
     def stop_job(cls, job, stop_status):
         tasks = JobSaver.query_task(
             job_id=job.f_job_id, role=job.f_role, party_id=job.f_party_id, only_latest=True, reverse=True)
         kill_status = True
         kill_details = {}
+        # 依次停止 job 对应的 task
         for task in tasks:
             if task.f_status in [TaskStatus.SUCCESS, TaskStatus.WAITING, TaskStatus.PASS]:
                 continue

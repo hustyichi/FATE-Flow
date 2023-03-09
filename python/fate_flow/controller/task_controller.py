@@ -168,6 +168,7 @@ class TaskController(object):
         else:
             return None
 
+    # 停止 task，物理上停止对应的进程，并将相关状态更新至 db
     @classmethod
     @asynchronous_function
     def stop_task(cls, task, stop_status):
