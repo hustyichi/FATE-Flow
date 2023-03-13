@@ -49,14 +49,22 @@ class ResourceManager(object):
         memory = engine_config.get("memory_per_node", 0) * nodes * JobDefaultConfig.total_memory_overweight_percent
         filters = [EngineRegistry.f_engine_type == engine_type, EngineRegistry.f_engine_name == engine_name]
         resources = EngineRegistry.select().where(*filters)
+
+        # 已有资源下，应该是只生效最新的一条资源记录，因为之前对应的资源记录可能使用了一部分，需要对应更新记录
         if resources:
             resource = resources[0]
             update_fields = {}
+
+            # 对应的资源的总量与配置信息，覆盖历史记录即可
             update_fields[EngineRegistry.f_engine_config] = engine_config
             update_fields[EngineRegistry.f_cores] = cores
             update_fields[EngineRegistry.f_memory] = memory
+
+            # f_remaining_cores 表示可用的 CPU 资源，通过比较本次注册的 CPU 资源与之前注册的 CPU 资源的差额，确定可用资源的数量
             update_fields[EngineRegistry.f_remaining_cores] = EngineRegistry.f_remaining_cores + (
                     cores - resource.f_cores)
+
+            # f_remaining_memory 表示可用的内存资源，通过比较本次注册的内存资源与之前注册的内存资源的差额，确定可用资源的数量
             update_fields[EngineRegistry.f_remaining_memory] = EngineRegistry.f_remaining_memory + (
                     memory - resource.f_memory)
             update_fields[EngineRegistry.f_nodes] = nodes
@@ -66,6 +74,7 @@ class ResourceManager(object):
                 stat_logger.info(f"update {engine_type} engine {engine_name} {engine_entrance} registration information")
             else:
                 stat_logger.info(f"update {engine_type} engine {engine_name} {engine_entrance} registration information takes no effect")
+        # 没有对应的资源下，直接新增即可
         else:
             resource = EngineRegistry()
             resource.f_create_time = base_utils.current_timestamp()
@@ -85,6 +94,7 @@ class ResourceManager(object):
                 stat_logger.warning(e)
             stat_logger.info(f"create {engine_type} engine {engine_name} {engine_entrance} registration information")
 
+    # 检查 job 所需的资源是否足够
     @classmethod
     def check_resource_apply(cls, job_parameters: RunParameters, role, party_id, engines_info):
         computing_engine, cores, memory = cls.calculate_job_resource(job_parameters=job_parameters, role=role, party_id=party_id)
@@ -139,7 +149,7 @@ class ResourceManager(object):
     @DB.connection_context()
     def resource_for_job(cls, job_id, role, party_id, operation_type: ResourceOperation):
         operate_status = False
-        # 获取 job 所需的计算资源与内存资源
+        # 计算 job 所需的计算资源与内存资源
         engine_name, cores, memory = cls.calculate_job_resource(job_id=job_id, role=role, party_id=party_id)
         try:
             with DB.atomic():
@@ -170,7 +180,7 @@ class ResourceManager(object):
                 if not record_status:
                     raise RuntimeError(f"record job {job_id} resource {operation_type} failed on {role} {party_id}")
 
-                # 通过 EngineRegistry 实际申请资源，利用数据库记录限制资源资源的使用
+                # 通过 EngineRegistry 实际申请资源与释放资源，利用数据库记录限制资源资源的使用
                 if cores or memory:
                     filters, updates = cls.update_resource_sql(resource_model=EngineRegistry,
                                                                cores=cores,
