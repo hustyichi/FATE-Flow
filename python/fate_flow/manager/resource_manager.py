@@ -153,7 +153,7 @@ class ResourceManager(object):
         engine_name, cores, memory = cls.calculate_job_resource(job_id=job_id, role=role, party_id=party_id)
         try:
             with DB.atomic():
-                # 将所需的资源信息保持至 job 对应的 db 中
+                # 在 Job 表中更新实际使用的资源，其中 f_cores 表示 Job 实际申请的 CPU 资源，f_memory 表示 Job 实际申请的内存资源
                 updates = {
                     Job.f_engine_type: EngineType.COMPUTING,
                     Job.f_engine_name: engine_name,
@@ -166,6 +166,7 @@ class ResourceManager(object):
                     Job.f_party_id == party_id,
                 ]
                 if operation_type is ResourceOperation.APPLY:
+                    # f_remaining_cores 表示 Job 中剩余的 CPU 资源，f_remaining_memory 表示 Job 中剩余的内存资源，后续 Task 就是从 Job 表申请资源
                     updates[Job.f_remaining_cores] = cores
                     updates[Job.f_remaining_memory] = memory
                     updates[Job.f_resource_in_use] = True
