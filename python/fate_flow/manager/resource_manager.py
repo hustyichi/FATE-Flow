@@ -44,9 +44,12 @@ class ResourceManager(object):
     @classmethod
     @DB.connection_context()
     def register_engine(cls, engine_type, engine_name, engine_entrance, engine_config):
+        # 获取对应的资源信息，cores 为 CPU 资源，memory 为内存资源
         nodes = engine_config.get("nodes", 1)
         cores = engine_config.get("cores_per_node", 0) * nodes * JobDefaultConfig.total_cores_overweight_percent
         memory = engine_config.get("memory_per_node", 0) * nodes * JobDefaultConfig.total_memory_overweight_percent
+
+        # 确认当前类型的资源是否已经注册过，如果注册过需要进行更新，注意不是增加，而是替代
         filters = [EngineRegistry.f_engine_type == engine_type, EngineRegistry.f_engine_name == engine_name]
         resources = EngineRegistry.select().where(*filters)
 
