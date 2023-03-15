@@ -315,9 +315,11 @@ class ResourceManager(object):
 
     @classmethod
     def resource_for_task(cls, task_info, operation_type):
+        # 计算 task 占用的资源
         cores_per_task, memory_per_task = cls.calculate_task_resource(task_info=task_info)
         schedule_logger(task_info["job_id"]).info(f"cores_per_task:{cores_per_task}, memory_per_task:{memory_per_task}")
         if cores_per_task or memory_per_task:
+            # task 的资源操作都是在 Job 表完成的, job 的资源申请是从 EngineRegistry 分配至 Job 表，task 的资源使用时在对应的 job 上完成
             filters, updates = cls.update_resource_sql(resource_model=Job,
                                                        cores=cores_per_task,
                                                        memory=memory_per_task,
