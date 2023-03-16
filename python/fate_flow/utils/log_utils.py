@@ -73,7 +73,7 @@ def get_logger_base_dir():
 
 
 def get_job_logger(job_id, log_type):
-    # 主要输出至 fate_flow 目录 和 job_id 相关的目录
+    # 主要输出至 fate_flow 目录 和 job_id 相关的目录，包含 job_id 时会以 job_id 为单位分开输出
     fate_flow_log_dir = get_fate_flow_directory('logs', 'fate_flow')
     job_log_dir = get_fate_flow_directory('logs', job_id)
 
@@ -110,6 +110,7 @@ def get_job_logger(job_id, log_type):
     return logger
 
 
+# 调度相关的日志，最终输出至 fate_flow_schedule.log，包含 job_id 时输出的日志中会包含对应的 job_id 信息，方便追踪
 def schedule_logger(job_id=None, delete=False):
     if not job_id:
         return getLogger("fate_flow_schedule")
@@ -129,6 +130,7 @@ def schedule_logger(job_id=None, delete=False):
         return get_job_logger(job_id, "schedule")
 
 
+# 审计相关日志，输出至 fate_flow_audit.log
 def audit_logger(job_id='', log_type='audit'):
     key = job_id + log_type
     if key in LoggerFactory.schedule_logger_dict.keys():
@@ -136,6 +138,7 @@ def audit_logger(job_id='', log_type='audit'):
     return get_job_logger(job_id=job_id, log_type=log_type)
 
 
+# 数据库相关日志，输出至 fate_flow_sql.log
 def sql_logger(job_id='', log_type='sql'):
     key = job_id + log_type
     if key in LoggerFactory.schedule_logger_dict.keys():
@@ -143,6 +146,7 @@ def sql_logger(job_id='', log_type='sql'):
     return get_job_logger(job_id=job_id, log_type=log_type)
 
 
+# 服务检测相关日志，输出至 fate_flow_detect.log
 def detect_logger(job_id='', log_type='detect'):
     key = job_id + log_type
     if key in LoggerFactory.schedule_logger_dict.keys():
