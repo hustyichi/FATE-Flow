@@ -77,7 +77,7 @@ def get_job_logger(job_id, log_type):
     fate_flow_log_dir = get_fate_flow_directory('logs', 'fate_flow')
     job_log_dir = get_fate_flow_directory('logs', job_id)
 
-    # 根据 job_id 确定是在 fate_flow 目录还是在 job_id 目录，audit 应该是审计日志，同时出现在两个目录
+    # 根据 job_id 确定是在 fate_flow 目录还是在 job_id 目录，audit 应该是请求调用跟踪日志，同时出现在两个目录
     if not job_id:
         log_dirs = [fate_flow_log_dir]
     else:
@@ -130,7 +130,7 @@ def schedule_logger(job_id=None, delete=False):
         return get_job_logger(job_id, "schedule")
 
 
-# 审计相关日志，输出至 fate_flow_audit.log
+# 请求调用跟踪相关日志，输出至 fate_flow_audit.log
 def audit_logger(job_id='', log_type='audit'):
     key = job_id + log_type
     if key in LoggerFactory.schedule_logger_dict.keys():
