@@ -77,7 +77,7 @@ def get_job_logger(job_id, log_type):
     fate_flow_log_dir = get_fate_flow_directory('logs', 'fate_flow')
     job_log_dir = get_fate_flow_directory('logs', job_id)
 
-    # 根据 job_id 确定是在 fate_flow 目录还是在 job_id 目录，audit 同时出现在两个目录
+    # 根据 job_id 确定是在 fate_flow 目录还是在 job_id 目录，audit 应该是审计日志，同时出现在两个目录
     if not job_id:
         log_dirs = [fate_flow_log_dir]
     else:
@@ -95,6 +95,7 @@ def get_job_logger(job_id, log_type):
         os.makedirs(job_log_dir, exist_ok=True)
         os.makedirs(fate_flow_log_dir, exist_ok=True)
 
+    # 生成对应的 logger，并对应匹配创建对应的 handler，从而实现日志输出至特定目录
     logger = LoggerFactory.new_logger(f"{job_id}_{log_type}")
     for job_log_dir in log_dirs:
         handler = LoggerFactory.get_handler(class_name=None, level=LoggerFactory.LEVEL,
@@ -102,6 +103,8 @@ def get_job_logger(job_id, log_type):
         error_handler = LoggerFactory.get_handler(class_name=None, level=logging.ERROR, log_dir=job_log_dir, log_type=log_type, job_id=job_id)
         logger.addHandler(handler)
         logger.addHandler(error_handler)
+
+    # 全局缓存对应的 logger，避免重复生成
     with LoggerFactory.lock:
         LoggerFactory.schedule_logger_dict[job_id + log_type] = logger
     return logger
