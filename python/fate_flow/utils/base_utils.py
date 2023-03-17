@@ -20,6 +20,8 @@ from fate_arch.common.base_utils import json_dumps
 
 FATE_FLOW_BASE = os.getenv("FATE_FLOW_BASE")
 
+# 支持文件目录的生成的基础方法
+# 默认是根据环境变量确定输出文件的父目录，没有指定时使用代码文件的顶层目录作为输出文件的父目录
 
 def get_fate_flow_directory(*args):
     global FATE_FLOW_BASE

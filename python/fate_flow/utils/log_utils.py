@@ -66,15 +66,18 @@ def base_msg(job=None, task=None, role: str = None, party_id: typing.Union[str, 
 def exception_to_trace_string(ex):
     return "".join(traceback.TracebackException.from_exception(ex).format())
 
-
+# 日志文件的父目录，为 `输出文件主目录 / logs`
 def get_logger_base_dir():
     job_log_dir = get_fate_flow_directory('logs')
     return job_log_dir
 
 
 def get_job_logger(job_id, log_type):
+    # 主要输出至 fate_flow 目录 和 job_id 相关的目录
     fate_flow_log_dir = get_fate_flow_directory('logs', 'fate_flow')
     job_log_dir = get_fate_flow_directory('logs', job_id)
+
+    # 根据 job_id 确定是在 fate_flow 目录还是在 job_id 目录，audit 同时出现在两个目录
     if not job_id:
         log_dirs = [fate_flow_log_dir]
     else:
@@ -82,6 +85,7 @@ def get_job_logger(job_id, log_type):
             log_dirs = [job_log_dir, fate_flow_log_dir]
         else:
             log_dirs = [job_log_dir]
+
     if LoggerFactory.log_share:
         oldmask = os.umask(000)
         os.makedirs(job_log_dir, exist_ok=True)
@@ -90,6 +94,7 @@ def get_job_logger(job_id, log_type):
     else:
         os.makedirs(job_log_dir, exist_ok=True)
         os.makedirs(fate_flow_log_dir, exist_ok=True)
+
     logger = LoggerFactory.new_logger(f"{job_id}_{log_type}")
     for job_log_dir in log_dirs:
         handler = LoggerFactory.get_handler(class_name=None, level=LoggerFactory.LEVEL,
