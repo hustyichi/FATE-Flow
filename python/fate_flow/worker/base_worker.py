@@ -92,6 +92,7 @@ class BaseWorker:
             RuntimeConfig.init_env()
             RuntimeConfig.set_process_role(ProcessRole(os.getenv("PROCESS_ROLE")))
             if RuntimeConfig.PROCESS_ROLE == ProcessRole.WORKER:
+                # 根据 log_dir 确定任务输出日志的路径
                 LoggerFactory.LEVEL = logging.getLevelName(os.getenv("FATE_LOG_LEVEL", "INFO"))
                 LoggerFactory.set_directory(directory=self.args.log_dir, parent_log_dir=self.args.parent_log_dir,
                                             append_to_parent_log=True, force=True)

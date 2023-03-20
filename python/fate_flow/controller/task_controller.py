@@ -92,6 +92,7 @@ class TaskController(object):
             schedule_logger(job_id).info(f"use computing engine {run_parameters.computing_engine}")
             task_info["engine_conf"] = {"computing_engine": run_parameters.computing_engine}
             backend_engine = build_engine(run_parameters.computing_engine)
+            # task 执行中对应的日志输出至 get_job_log_directory() 指定的 logs/{job_id}/{role}/{party_id}/{component_name} 对应的目录
             run_info = backend_engine.run(task=task,
                                           run_parameters=run_parameters,
                                           run_parameters_path=run_parameters_path,

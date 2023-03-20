@@ -151,6 +151,7 @@ class WorkerManager:
     @classmethod
     def start_task_worker(cls, worker_name, task: Task, task_parameters: RunParameters = None,
                           executable: list = None, extra_env: dict = None, **kwargs):
+        # 根据 task 执行情况确定最终日志输出的目录 log_dir
         worker_id, config_dir, log_dir = cls.get_process_dirs(worker_name=worker_name,
                                                               job_id=task.f_job_id,
                                                               role=task.f_role,
