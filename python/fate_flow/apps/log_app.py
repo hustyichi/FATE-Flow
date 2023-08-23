@@ -22,6 +22,7 @@ from fate_flow.utils.log_sharing_utils import LogCollector
 @manager.route('/size', methods=['POST'])
 @cluster_route
 def get_log_size():
+    # 获取日志行数
     request_data = request.json
     data = LogCollector(**request_data).get_size()
     return get_json_result(retcode=0, retmsg='success', data={"size": data})
@@ -30,6 +31,7 @@ def get_log_size():
 @manager.route('/cat', methods=['POST'])
 @cluster_route
 def get_log():
+    # 获取日志内容，实现是通过命令行执行 cat 获取本地的日志
     request_data = request.json
     data = LogCollector(**request_data).cat_log(request_data.get("begin"), request_data.get("end"))
     return get_json_result(retcode=0, retmsg='success', data=data)

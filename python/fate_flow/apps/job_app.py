@@ -89,6 +89,7 @@ def query_job():
 
 @manager.route('/list/job', methods=['POST'])
 def list_job():
+    # 获取 job 列表
     limit, offset = parse_limit_and_offset()
 
     query = {
