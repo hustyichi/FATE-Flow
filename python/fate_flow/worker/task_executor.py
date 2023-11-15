@@ -47,6 +47,7 @@ from fate_flow.worker.task_base_worker import BaseTaskWorker, ComponentInput
 LOGGER = getLogger()
 
 
+# 实际的 task 都是通过此类在独立进程上执行完成的
 class TaskExecutor(BaseTaskWorker):
     def _run_(self):
         # todo: All function calls where errors should be thrown
@@ -201,11 +202,15 @@ class TaskExecutor(BaseTaskWorker):
                 # add profile logs
                 LOGGER.info("profile logging is enabled")
                 profile.profile_start()
+
+                # 实际的 task 执行对应的功能
                 cpn_output = run_object.run(cpn_input)
                 sess.wait_remote_all_done()
                 profile.profile_ends()
             else:
                 LOGGER.info("profile logging is disabled")
+
+                # 实际的 task 执行对应的功能
                 cpn_output = run_object.run(cpn_input)
                 sess.wait_remote_all_done()
 

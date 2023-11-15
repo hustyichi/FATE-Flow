@@ -81,6 +81,7 @@ class BaseWorker:
         self.run_pid = None
         self.report_info = {}
 
+    # 实际 task 执行调用的方法
     def run(self, **kwargs):
         result = {}
         code = 0
@@ -109,6 +110,8 @@ class BaseWorker:
                 ComponentRegistry.load()
             if not RuntimeConfig.LOAD_CONFIG_MANAGER:
                 ConfigManager.load()
+
+            # 真正的 task 需要完成的功能需要再 _run() 方法中实现
             result = self._run()
         except Exception as e:
             LOGGER.exception(e)
