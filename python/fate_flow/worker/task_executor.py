@@ -49,6 +49,7 @@ LOGGER = getLogger()
 
 # 实际的 task 都是通过此类在独立进程上执行完成的
 class TaskExecutor(BaseTaskWorker):
+    # 实际的 task 执行调用此方法
     def _run_(self):
         # todo: All function calls where errors should be thrown
         args = self.args
@@ -174,6 +175,8 @@ class TaskExecutor(BaseTaskWorker):
             provider_interface = provider_utils.get_provider_interface(provider=component_provider)
             run_object = provider_interface.get(module_name, ComponentRegistry.get_provider_components(provider_name=component_provider.name, provider_version=component_provider.version)).get_run_obj(self.args.role)
             flow_feeded_parameters.update({"table_info": input_table_list})
+
+            # 构造任务执行的输入数据
             cpn_input = ComponentInput(
                 tracker=tracker_client,
                 checkpoint_manager=checkpoint_manager,
@@ -218,6 +221,7 @@ class TaskExecutor(BaseTaskWorker):
             LOGGER.info(f"task output data {cpn_output.data}")
 
             output_table_list = []
+            # 保存 task 执行的输出
             for index, data in enumerate(cpn_output.data):
                 data_name = task_output_dsl.get('data')[index] if task_output_dsl.get('data') else '{}'.format(index)
                 #todo: the token depends on the engine type, maybe in job parameters
@@ -243,6 +247,7 @@ class TaskExecutor(BaseTaskWorker):
                     user_specified_run_parameters=user_specified_parameters,
                 )
 
+            # task 执行的输出保存至 cache
             if cpn_output.cache:
                 for i, cache in enumerate(cpn_output.cache):
                     if cache is None:

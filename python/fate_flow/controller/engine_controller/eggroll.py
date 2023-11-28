@@ -23,6 +23,7 @@ from fate_flow.utils import job_utils, process_utils
 
 
 class EggrollEngine(EngineABC):
+    # 实际执行对应的 task
     def run(self, task: Task, run_parameters, run_parameters_path, config_dir, log_dir, cwd_dir, **kwargs):
         return WorkerManager.start_task_worker(worker_name=WorkerName.TASK_EXECUTOR, task=task,
                                                task_parameters=run_parameters)

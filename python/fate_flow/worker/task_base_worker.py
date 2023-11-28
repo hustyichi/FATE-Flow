@@ -89,6 +89,7 @@ class ComponentInput:
 
 
 class BaseTaskWorker(BaseWorker):
+    # BaseWorker 封装会调用此方法，此方法封装 TaskWorker 会调用 _run_() 方法
     def _run(self):
         self.report_info.update({
             "job_id": self.args.job_id,
