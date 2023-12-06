@@ -321,6 +321,7 @@ class JobController(object):
                                                           provider_info=initialized_config["provider"])
         return initialized_result, provider_group
 
+    # job 每个 component 创建对应的 task
     @classmethod
     def initialize_task_holder_for_scheduling(cls, role, party_id, components, common_task_info, provider_info):
         for component_name in components:

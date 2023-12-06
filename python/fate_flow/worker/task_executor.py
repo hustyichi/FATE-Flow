@@ -88,8 +88,13 @@ class TaskExecutor(BaseTaskWorker):
                 TaskExecutor.monkey_patch()
 
             job_args_on_party = TaskExecutor.get_job_args_on_party(dsl_parser, job_configuration.runtime_conf_on_party, args.role, args.party_id)
+
+            # 根据 component_name 确定对应的组件
             component = dsl_parser.get_component_info(component_name=args.component_name)
+
+            # 根据组件获取对应的组件模块名，可以用于关联组件实现代码
             module_name = component.get_module()
+
             task_input_dsl = component.get_input()
             task_output_dsl = component.get_output()
 
@@ -159,6 +164,8 @@ class TaskExecutor(BaseTaskWorker):
             LOGGER.info(f'run {args.component_name} {args.task_id} {args.task_version} on {args.role} {args.party_id} task')
             LOGGER.info(f"component parameters on party:\n{json_dumps(component_parameters_on_party, indent=4)}")
             LOGGER.info(f"task input dsl {task_input_dsl}")
+
+            # 获取 task 运行输入相关参数与数据
             task_run_args, input_table_list = self.get_task_run_args(job_id=args.job_id, role=args.role, party_id=args.party_id,
                                                                      task_id=args.task_id,
                                                                      task_version=args.task_version,
@@ -173,6 +180,8 @@ class TaskExecutor(BaseTaskWorker):
 
             need_run = component_parameters_on_party.get("ComponentParam", {}).get("need_run", True)
             provider_interface = provider_utils.get_provider_interface(provider=component_provider)
+            # 根据组件模块名确定注册的实现模块
+
             run_object = provider_interface.get(module_name, ComponentRegistry.get_provider_components(provider_name=component_provider.name, provider_version=component_provider.version)).get_run_obj(self.args.role)
             flow_feeded_parameters.update({"table_info": input_table_list})
 
@@ -321,6 +330,7 @@ class TaskExecutor(BaseTaskWorker):
         job_args_on_party = job_args[role][party_index].get('args') if role in job_args else {}
         return job_args_on_party
 
+    # 获取 task 运行所需的输入参数与数据
     @classmethod
     def get_task_run_args(cls, job_id, role, party_id, task_id, task_version,
                           job_args, job_parameters: RunParameters, task_parameters: RunParameters,
