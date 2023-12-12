@@ -31,7 +31,7 @@ from fate_flow.entity.types import TaskCleanResourceType
 
 class TaskScheduler(object):
     @classmethod
-    # 实际的 job 调度执行
+    # 实际的 job 调度执行，通过不断执行 DAG 图中入度为 0 的 task，最终完整 job 执行
     def schedule(cls, job, dsl_parser, canceled=False):
         schedule_logger(job.f_job_id).info("scheduling job tasks")
         initiator_tasks_group = JobSaver.get_tasks_asc(job_id=job.f_job_id, role=job.f_role, party_id=job.f_party_id)
@@ -79,7 +79,7 @@ class TaskScheduler(object):
         if not canceled and not job_interrupt:
             # 执行所有就绪的 tasks
             for waiting_task in waiting_tasks:
-                # task 相关的上游 task 没有执行完成，task 无法执行
+                # task 相关的上游 task 没有执行完成，task 无法执行, 相当于将 DAG 中入度超过 0 的组件放弃执行
                 for component in dsl_parser.get_upstream_dependent_components(component_name=waiting_task.f_component_name):
                     dependent_task = initiator_tasks_group[
                         JobSaver.task_key(task_id=job_utils.generate_task_id(job_id=job.f_job_id, component_name=component.get_name()),
@@ -91,7 +91,7 @@ class TaskScheduler(object):
                         # can not start task
                         break
                 else:
-                    # all upstream dependent tasks have been successful, can start this task
+                    # 依赖组件都已经执行完成，可以开始执行
                     scheduling_status_code = SchedulingStatusCode.HAVE_NEXT
                     # 执行就绪的 task
                     status_code = cls.start_task(job=job, task=waiting_task)

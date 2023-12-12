@@ -172,6 +172,7 @@ class BaseDSLParser(object):
                 else:
                     raise NamingFormatError(component=name)
 
+    # 确定组件之间的依赖的关系
     def _find_dependencies(self, mode="train", version=1):
         self.component_downstream = [[] for _ in range(len(self.components))]
         self.component_upstream = [[] for _ in range(len(self.components))]
@@ -222,7 +223,19 @@ class BaseDSLParser(object):
                             if keyword == "model" or keyword == "cache":
                                 self.train_input_model[name] = input_component
 
+            # 组件存在输入数据，根据输入数据可以确定对应的前置依赖组件，示例如下
+            # {
+            #     "data": {
+            #         "data": [
+            #             "reader_0.data"
+            #         ]
+            #     }
+            # }
             if "data" in upstream_input:
+                # 示例 data_dict
+                # {
+                #     "data": [ "reader_0.data" ]
+                # }
                 data_dict = upstream_input.get("data")
                 if not isinstance(data_dict, dict):
                     raise ComponentInputDataTypeError(component=name)
@@ -237,6 +250,8 @@ class BaseDSLParser(object):
                         stat_logger.warning(
                             "DSLParser Warning: make sure that input data's data key should be in {}, but {} found".format(
                                 ["data", "train_data", "validate_data", "test_data", "eval_data"], data_set))
+
+                    #  示例如下 data_dict.get(data_set) 示例为 [ "reader_0.data" ], data_key 为 reader_0.data
                     for data_key in data_dict.get(data_set):
                         input_component = data_key.split(".", -1)[0]
                         input_data_name = data_key.split(".", -1)[-1]
@@ -253,6 +268,7 @@ class BaseDSLParser(object):
 
                             idx_dependency = self.component_name_index.get(input_component)
                             self.component_downstream[idx_dependency].append(name)
+                            # 确定组件前置依赖
                             self.component_upstream[idx].append(input_component)
 
         self.in_degree = [0 for _ in range(len(self.components))]
@@ -267,7 +283,9 @@ class BaseDSLParser(object):
 
         self._check_dag_dependencies()
 
+        # 设置组件对应的依赖关系，方便后续使用 DAG 方式执行
         for i in range(len(self.components)):
+            # 调用 set_upstream 设置此组件对应的所有前置依赖组件
             self.components[i].set_upstream(self.component_upstream[i])
             self.components[i].set_downstream(self.component_downstream[i])
 
